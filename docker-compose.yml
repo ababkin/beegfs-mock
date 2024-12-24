@@ -1,0 +1,8 @@
+version: '3.8'
+
+services:
+  beegfs-quota:
+    build: .
+    volumes:
+      - /project:/project  # Mount the BeeGFS mount point
+      - /home1:/home1      # Mount another BeeGFS mount point if needed 

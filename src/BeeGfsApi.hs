@@ -6,16 +6,19 @@ module BeeGfsApi
     , BeeGfsError(..)
     ) where
 
-import Network.HTTP.Simple
-import qualified Data.ByteString.Char8 as B
+import Network.HTTP.Client
+import Network.HTTP.Client.TLS (newTlsManager)
+import Network.HTTP.Types.Status (statusCode)
 import Data.Aeson
 import Control.Exception (Exception)
 import Control.Monad.IO.Class (MonadIO, liftIO)
+import qualified Data.ByteString.Char8 as B
 import qualified Data.Text as T
+import BeeGfsOptions (QuotaType(..), QuotaSelection(..))
 
 -- API Configuration
 apiBaseUrl :: String
-apiBaseUrl = "http://beegfs-api:8080/v1"  -- Example URL
+apiBaseUrl = "http://localhost:8080"  -- Point to Mountebank mock
 
 -- Error type
 data BeeGfsError = 
@@ -27,32 +30,44 @@ instance Exception BeeGfsError
 
 -- API Functions
 getQuota :: MonadIO m => 
-            Bool     -- ^ CSV output
-         -> Bool     -- ^ Use GID
-         -> Bool     -- ^ Use UID
-         -> String   -- ^ Mount point
-         -> Maybe String  -- ^ User list
-         -> Maybe String  -- ^ UID value
-         -> Maybe String  -- ^ GID value
+            Bool        -- ^ CSV output
+         -> QuotaType   -- ^ Use GID or UID
+         -> String      -- ^ Mount point
+         -> QuotaSelection -- ^ Selection of IDs to query
          -> m (Either BeeGfsError Value)
-getQuota csv useGid useUid mount userList uidVal gidVal = liftIO $ do
-    let queryParams = 
-            [ ("csv", Just $ if csv then "true" else "false")
-            , ("gid", Just $ if useGid then "true" else "false")
-            , ("uid", Just $ if useUid then "true" else "false")
-            , ("mount", Just $ B.pack mount)
-            ] ++ 
-            maybe [] (\l -> [("list", Just $ B.pack l)]) userList ++
-            maybe [] (\u -> [("uid_value", Just $ B.pack u)]) uidVal ++
-            maybe [] (\g -> [("gid_value", Just $ B.pack g)]) gidVal
+getQuota csv quotaType mount selection = liftIO $ do
+    manager <- newManager defaultManagerSettings
+    
+    let baseParams = 
+            [ "csv=" <> if csv then "true" else "false"
+            , "gid=" <> if quotaType == UseGID then "true" else "false"
+            , "uid=" <> if quotaType == UseUID then "true" else "false"
+            , "mount=" <> B.pack mount
+            ]
+        
+        selectionParams = case selection of
+            Single mid -> maybe [] (\id' -> [idParam <> B.pack id']) mid
+            List ids -> ["list=" <> B.pack ids]
+            All -> ["all=true"]
+            Range start end -> ["range=" <> B.pack (start <> "," <> end)]
+            where
+                idParam = if quotaType == UseUID then "uid_value=" else "gid_value="
 
-    request <- setRequestQueryString queryParams
-             . setRequestMethod "GET"
-             . setRequestPath "/quota"
-             $ defaultRequest { host = "beegfs-api"
-                            , port = 8080 }
+    let queryString = B.intercalate "&" $ filter (not . B.null) (baseParams ++ selectionParams)
 
-    handleResponse <$> httpJSON request
+    initReq <- parseRequest "http://beegfs-api:8080/quota"
+    let request = initReq
+            { method = "GET"
+            , queryString = queryString
+            }
+
+    response <- httpLbs request manager
+    let status = responseStatus response
+    pure $ if statusCode status >= 200 && statusCode status < 300
+        then case eitherDecode (responseBody response) of
+            Left err -> Left $ ParseError err
+            Right val -> Right val
+        else Left $ ApiError (statusCode status) (show $ responseBody response)
 
 setQuota :: MonadIO m =>
             Maybe String  -- ^ GID
@@ -63,7 +78,9 @@ setQuota :: MonadIO m =>
          -> Bool        -- ^ Unlimited inodes
          -> m (Either BeeGfsError Value)
 setQuota gid uid sizeLimit inodeLimit mount unlimitedInodes = liftIO $ do
-    let body = object
+    manager <- newManager defaultManagerSettings
+    
+    let body = encode $ object
             [ "gid" .= gid
             , "uid" .= uid
             , "size_limit" .= sizeLimit
@@ -73,18 +90,19 @@ setQuota gid uid sizeLimit inodeLimit mount unlimitedInodes = liftIO $ do
             , "mount" .= mount
             ]
 
-    request <- setRequestBodyJSON body
-             . setRequestMethod "POST"
-             . setRequestPath "/quota"
-             $ defaultRequest { host = "beegfs-api"
-                            , port = 8080 }
+    initReq <- parseRequest "http://beegfs-api:8080/quota"
+    let request = initReq
+            { method = "POST"
+            , requestBody = RequestBodyLBS body
+            , requestHeaders = 
+                [ ("Content-Type", "application/json")
+                ]
+            }
 
-    handleResponse <$> httpJSON request
-
--- Helper function to handle API responses
-handleResponse :: Response Value -> Either BeeGfsError Value
-handleResponse response =
-    let status = getResponseStatusCode response
-    in if status >= 200 && status < 300
-       then Right $ getResponseBody response
-       else Left $ ApiError status (show $ getResponseBody response) 
+    response <- httpLbs request manager
+    let status = responseStatus response
+    pure $ if statusCode status >= 200 && statusCode status < 300
+        then case eitherDecode (responseBody response) of
+            Left err -> Left $ ParseError err
+            Right val -> Right val
+        else Left $ ApiError (statusCode status) (show $ responseBody response) 

@@ -49,16 +49,27 @@ library
   build-depends: base
                , aeson
                , bytestring
-               , envparse
+               , directory
+               -- , envparse       -- remove if not using environment variable parsing
+               , filepath
+               , http-client
+               , http-client-tls
+               , http-types
                , optparse-applicative
-               , raw-strings-qq
-               , safe
-               , some
+               , process
                , text
-               , uuid
+               -- , raw-strings-qq  -- remove if not using raw string quasi-quotes
+               -- , safe            -- remove if not using safe functions
+               -- , some            -- remove if not needed
+               -- , uuid            -- remove if not generating UUIDs
+               , wreq
+               , http-client
+               , http-client-tls
+               , curl
   exposed-modules:
     Mock
     BeeGfsOptions
+    BeeGfsApi
   ghc-options: -Wall -O -fno-show-valid-hole-fits
                -- unsafe code
                -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wmissing-fields

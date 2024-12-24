@@ -4,11 +4,32 @@ module BeeGfsOptions
   ( BeeGfsCommand(..)
   , GetQuotaOpts(..)
   , SetQuotaOpts(..)
+  , QuotaType(..)
+  , QuotaSelection(..)
   , opts
   ) where
 
 import Options.Applicative
-import Data.Semigroup ((<>))
+    ( Parser
+    , ParserInfo
+    , info
+    , switch
+    , long
+    , help
+    , strOption
+    , metavar
+    , value
+    , argument
+    , str
+    , optional
+    , subparser
+    , command
+    , progDesc
+    , (<**>)
+    , helper
+    , fullDesc
+    , header
+    )
 
 -- Data types to represent the different commands
 data BeeGfsCommand 
@@ -17,14 +38,21 @@ data BeeGfsCommand
     deriving (Show)
 
 -- Options for get-quota command
+data QuotaType = UseUID | UseGID
+    deriving (Show, Eq)
+
+data QuotaSelection 
+    = Single (Maybe String)  -- Single UID/GID value
+    | List String           -- List of UIDs/GIDs
+    | All                   -- All UIDs/GIDs
+    | Range String String   -- Range of UIDs/GIDs
+    deriving (Show)
+
 data GetQuotaOpts = GetQuotaOpts
     { gqCsv :: Bool
-    , gqGid :: Bool
-    , gqUid :: Bool
+    , gqType :: QuotaType
     , gqMount :: FilePath
-    , gqUserList :: Maybe String
-    , gqUidValue :: Maybe String
-    , gqGidValue :: Maybe String
+    , gqSelection :: QuotaSelection
     } deriving (Show)
 
 -- Options for set-quota command
@@ -43,29 +71,43 @@ getQuotaOpts = GetQuotaOpts
     <$> switch
         ( long "csv"
         <> help "Output in CSV format" )
-    <*> switch
-        ( long "gid"
-        <> help "Use group ID" )
-    <*> switch
-        ( long "uid"
-        <> help "Use user ID" )
+    <*> (makeQuotaType
+        <$> switch ( long "uid" <> help "Use user ID" )
+        <*> switch ( long "gid" <> help "Use group ID" ))
     <*> strOption
         ( long "mount"
         <> metavar "MOUNT_POINT"
         <> help "Mount point to check quota for (e.g., /project, /home1)"
         <> value "/project" )
-    <*> optional (strOption
-        ( long "list"
-        <> metavar "USER_LIST"
-        <> help "List of users/groups to check" ))
-    <*> optional (strOption
-        ( long "uid"
-        <> metavar "UID"
-        <> help "User ID to check quota for" ))
-    <*> optional (strOption
-        ( long "gid"
-        <> metavar "GID"
-        <> help "Group ID to check quota for" ))
+    <*> (makeSelection
+        <$> switch ( long "all" <> help "Query all UIDs/GIDs" )
+        <*> optional (strOption 
+            ( long "list"
+            <> metavar "ID_LIST"
+            <> help "Comma-separated list of IDs to check" ))
+        <*> optional (strOption
+            ( long "range-start"
+            <> metavar "START"
+            <> help "Start of ID range" ))
+        <*> optional (strOption
+            ( long "range-end"
+            <> metavar "END"
+            <> help "End of ID range" ))
+        <*> optional (argument str
+            ( metavar "ID"
+            <> help "Single ID to check" )))
+  where
+    makeQuotaType uid gid = case (uid, gid) of
+        (True, False) -> UseUID
+        (False, True) -> UseGID
+        _ -> error "One of --uid or --gid is required"
+
+    makeSelection all lst start end single = case (all, lst, start, end, single) of
+        (True, Nothing, Nothing, Nothing, Nothing) -> All
+        (False, Just ids, Nothing, Nothing, Nothing) -> List ids
+        (False, Nothing, Just s, Just e, Nothing) -> Range s e
+        (False, Nothing, Nothing, Nothing, s) -> Single s
+        _ -> error "Only one selection method allowed"
 
 -- Parser for set-quota command
 setQuotaOpts :: Parser SetQuotaOpts
