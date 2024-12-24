@@ -1,0 +1,92 @@
+name: mock
+version: 0.1
+cabal-version: >= 1.8
+build-type: Simple
+
+library
+  hs-source-dirs: src
+  if impl(ghcjs)
+    buildable: False
+  default-extensions:
+    BangPatterns
+    ConstraintKinds
+    DataKinds
+    DefaultSignatures
+    DeriveDataTypeable
+    DeriveFoldable
+    DeriveFunctor
+    DeriveGeneric
+    DeriveTraversable
+    DerivingStrategies
+    EmptyCase
+    FlexibleContexts
+    FlexibleInstances
+    FunctionalDependencies
+    GADTs
+    GeneralizedNewtypeDeriving
+    ImportQualifiedPost
+    InstanceSigs
+    KindSignatures
+    KindSignatures
+    LambdaCase
+    MultiParamTypeClasses
+    NamedFieldPuns
+    NumericUnderscores
+    OverloadedStrings
+    PartialTypeSignatures
+    PolyKinds
+    QuasiQuotes
+    RankNTypes
+    RecursiveDo
+    ScopedTypeVariables
+    StandaloneDeriving
+    TemplateHaskell
+    TypeApplications
+    TypeFamilies
+    TypeOperators
+    UndecidableInstances
+    ViewPatterns
+  build-depends: base
+               , aeson
+               , bytestring
+               , envparse
+               , optparse-applicative
+               , raw-strings-qq
+               , safe
+               , some
+               , text
+               , uuid
+  exposed-modules:
+    Mock
+    BeeGfsOptions
+  ghc-options: -Wall -O -fno-show-valid-hole-fits
+               -- unsafe code
+               -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wmissing-fields
+               -Werror=incomplete-record-updates -Werror=incomplete-uni-patterns -Werror=partial-fields -Werror=missing-fields
+               -- unneeded code
+               -Widentities -Wredundant-constraints
+               -- Partial type signatures are OK
+               -Wno-partial-type-signatures
+
+              -- for now
+               -Wno-unused-imports
+  if impl(ghc >= 8.8)
+    ghc-options:
+               -Wmissing-deriving-strategies
+
+executable beegfs-ctl
+  main-is: beegfs-ctl.hs
+  hs-source-dirs: src-bin
+  ghc-options: -Wall -O -fno-show-valid-hole-fits -threaded
+               -- unsafe code
+               -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wmissing-fields
+               -Werror=incomplete-record-updates -Werror=incomplete-uni-patterns -Werror=partial-fields -Werror=missing-fields
+               -- unneeded code
+               -Widentities -Wredundant-constraints
+  if impl(ghc >= 8.8)
+    ghc-options:
+               -Wmissing-deriving-strategies
+  if impl(ghcjs)
+    buildable: False
+  build-depends: base
+               , mock
