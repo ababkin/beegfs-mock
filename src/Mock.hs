@@ -4,6 +4,9 @@ import Options.Applicative
 import Text.Printf (printf)
 import Data.List (intercalate)
 import BeeGfsOptions
+import BeeGfsApi
+import Control.Monad.IO.Class (liftIO)
+import Data.Aeson (Value)
 
 -- Data types for quota information
 data QuotaInfo = QuotaInfo
@@ -55,28 +58,27 @@ handleCommand (SetQuota sopts) = handleSetQuota sopts
 -- Handler functions
 handleGetQuota :: GetQuotaOpts -> IO ()
 handleGetQuota opts = do
-  let args = ["beegfs-ctl", "--getquota"]
-        ++ ["--csv" | gqCsv opts]
-        ++ ["--gid" | gqGid opts]
-        ++ ["--uid" | gqUid opts]
-        ++ ["--mount=" ++ gqMount opts]
-        ++ maybe [] (\l -> ["--list", l]) (gqUserList opts)
-        ++ maybe [] (\uid -> ["--uid", uid]) (gqUidValue opts)
-        ++ maybe [] (\gid -> ["--gid", gid]) (gqGidValue opts)
-  putStrLn $ "Would execute: " ++ unwords args
+    result <- getQuota 
+        (gqCsv opts)
+        (gqGid opts)
+        (gqUid opts)
+        (gqMount opts)
+        (gqUserList opts)
+        (gqUidValue opts)
+        (gqGidValue opts)
+    case result of
+        Left err -> putStrLn $ "Error: " ++ show err
+        Right response -> putStrLn $ "Response: " ++ show response
 
 handleSetQuota :: SetQuotaOpts -> IO ()
 handleSetQuota opts = do
-  let defaultInodes = "30000000"  -- 30M default inode limit
-      inodeArgs = if sqUnlimitedInodes opts 
-                 then ["--inodelimit=unlimited"]
-                 else maybe ["--inodelimit=" ++ defaultInodes] 
-                      (\i -> ["--inodelimit=" ++ i]) 
-                      (sqInodeLimit opts)
-      args = ["beegfs-ctl", "--setquota"]
-        ++ maybe [] (\gid -> ["--gid", gid]) (sqGid opts)
-        ++ maybe [] (\uid -> ["--uid", uid]) (sqUid opts)
-        ++ ["--sizelimit=" ++ sqSizeLimit opts]
-        ++ inodeArgs
-        ++ ["--mount=" ++ sqMount opts]
-  putStrLn $ "Would execute: " ++ unwords args
+    result <- setQuota 
+        (sqGid opts)
+        (sqUid opts)
+        (sqSizeLimit opts)
+        (sqInodeLimit opts)
+        (sqMount opts)
+        (sqUnlimitedInodes opts)
+    case result of
+        Left err -> putStrLn $ "Error: " ++ show err
+        Right response -> putStrLn $ "Response: " ++ show response
