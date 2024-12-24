@@ -3,32 +3,55 @@
     "port": 8080,
     "protocol": "http",
     "name": "BeeGFS API Mock",
-    "stubs": [{
-      "predicates": [{
-        "equals": {
-          "method": "GET",
-          "path": "/quota"
-        }
-      }],
-      "responses": [{
-        "is": {
-          "statusCode": 200,
-          "headers": {
-            "Content-Type": "application/json"
-          },
-          "body": {
-            "quotas": [
-              {
-                "uid": "1000",
-                "used": "500G",
-                "limit": "1T",
-                "inodes_used": "1000000",
-                "inodes_limit": "2000000"
-              }
-            ]
+    "recordRequests": true,
+    "stubs": [
+      {
+        "predicates": [{
+          "equals": {
+            "method": "GET",
+            "path": "/quota"
           }
-        }
-      }]
-    }]
+        }],
+        "responses": [{
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "quotas": [
+                {
+                  "uid": "1000",
+                  "used": "500G",
+                  "limit": "1T",
+                  "inodes_used": "8000000",
+                  "inodes_limit": "2000000"
+                }
+              ]
+            }
+          }
+        }]
+      },
+      {
+        "predicates": [{
+          "equals": {
+            "method": "POST",
+            "path": "/quota"
+          }
+        }],
+        "responses": [{
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "status": "success",
+              "message": "Quota set successfully"
+            }
+          }
+        }]
+      }
+    ]
   }]
 } 

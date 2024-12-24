@@ -20,6 +20,8 @@ static.out
 /import
 /config/backend/services.json
 kb/
+.cursorignore
+ssh_keys/
 
 # Docker
 .docker/

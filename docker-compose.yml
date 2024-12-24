@@ -1,8 +1,35 @@
-version: '3.8'
-
 services:
-  beegfs-quota:
+  beegfs-mock:
     build: .
+    image: beegfs-mock
+    container_name: beegfs_mock
+    init: true  # Use tini as init process
+    stop_signal: SIGTERM
+    stop_grace_period: 2s
+    ports:
+      - '2222:22'
+      - '2525:2525'  # Mountebank admin
+      - '8080:8080'  # Mock API
+    networks:
+      - test-network
+    tty: true
     volumes:
-      - /project:/project  # Mount the BeeGFS mount point
-      - /home1:/home1      # Mount another BeeGFS mount point if needed 
+      - beegfs_mock_data:/data
+      - ${PWD}/ssh_keys:/ssh_keys
+      - ${PWD}/imposters:/imposters
+    command: >
+      /bin/bash -c "
+      cat /ssh_keys/id_rsa.pub > /root/.ssh/authorized_keys &&
+      chmod 600 /root/.ssh/authorized_keys &&
+      trap 'kill -TERM $$(jobs -p) 2>/dev/null' TERM INT &&
+      /usr/sbin/sshd &&
+      mb --configfile /imposters/imposters.ejs --allowInjection &
+      wait
+      "
+
+networks:
+  test-network:
+    driver: bridge
+
+volumes:
+  beegfs_mock_data: 

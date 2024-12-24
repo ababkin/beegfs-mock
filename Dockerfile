@@ -30,7 +30,8 @@ RUN apt-get update && \
     netcat \
     curl \
     nodejs \
-    npm && \
+    npm \
+    jq && \
     rm -rf /var/lib/apt/lists/* && \
     mkdir -p /var/run/sshd && \
     mkdir -p /root/.ssh && \
@@ -53,22 +54,4 @@ RUN sed -i 's/#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config && \
     sed -i 's/#PubkeyAuthentication.*/PubkeyAuthentication yes/' /etc/ssh/sshd_config
 
 # Expose ports
-EXPOSE 22 2525 8080
-
-# Create startup script
-COPY <<'EOF' /start.sh
-#!/bin/bash
-# Start SSH daemon
-/usr/sbin/sshd
-
-# Start Mountebank with imposters
-mb --configfile /imposters/imposters.ejs --allowInjection &
-
-# Keep container running
-exec tail -f /dev/null
-EOF
-
-RUN chmod +x /start.sh
-
-# Start services
-CMD ["/start.sh"] 
+EXPOSE 22 2525 8080 

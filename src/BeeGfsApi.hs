@@ -18,7 +18,7 @@ import BeeGfsOptions (QuotaType(..), QuotaSelection(..))
 
 -- API Configuration
 apiBaseUrl :: String
-apiBaseUrl = "http://localhost:8080"  -- Point to Mountebank mock
+apiBaseUrl = "http://0.0.0.0:8080"  -- Point to Mountebank mock
 
 -- Error type
 data BeeGfsError = 
@@ -55,7 +55,7 @@ getQuota csv quotaType mount selection = liftIO $ do
 
     let queryString = B.intercalate "&" $ filter (not . B.null) (baseParams ++ selectionParams)
 
-    initReq <- parseRequest "http://beegfs-api:8080/quota"
+    initReq <- parseRequest (apiBaseUrl ++ "/quota")
     let request = initReq
             { method = "GET"
             , queryString = queryString
@@ -90,7 +90,7 @@ setQuota gid uid sizeLimit inodeLimit mount unlimitedInodes = liftIO $ do
             , "mount" .= mount
             ]
 
-    initReq <- parseRequest "http://beegfs-api:8080/quota"
+    initReq <- parseRequest (apiBaseUrl ++ "/quota")
     let request = initReq
             { method = "POST"
             , requestBody = RequestBodyLBS body
