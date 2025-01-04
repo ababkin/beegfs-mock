@@ -1,1 +1,1 @@
-docker build -t beegfs-mock .
+docker build -t ssh-remote-box-mock:latest .
