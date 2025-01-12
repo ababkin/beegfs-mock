@@ -12,6 +12,29 @@
             "path": "/quota",
             "query": {
               "gid": "true",
+              "gid_list": "jdoe_1000",
+              "mount": "/project",
+              "csv": "true"
+            }
+          }
+        }],
+        "responses": [{
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Content-Type": "text/plain"
+            },
+            "body": "Name,Type,Used,Limit,Files,FilesLimit\njdoe_1000,gid,8589934592,10737418240,15000000,20000000"
+          }
+        }]
+      },
+      {
+        "predicates": [{
+          "equals": {
+            "method": "GET",
+            "path": "/quota",
+            "query": {
+              "gid": "true",
               "gid_list": "group1,group2,group3",
               "mount": "/project",
               "csv": "true"
@@ -35,7 +58,7 @@
             "path": "/quota",
             "query": {
               "gid": "true",
-              "gid_value": "group1",
+              "gid_value": "jdoe_2000",
               "mount": "/project",
               "csv": "true"
             }
@@ -47,7 +70,7 @@
             "headers": {
               "Content-Type": "text/plain"
             },
-            "body": "Name,Type,Used,Limit,Files,FilesLimit\ngroup1,gid,16106127360,21474836480,25000000,30000000"
+            "body": "Name,Type,Used,Limit,Files,FilesLimit\njdoe_2000,gid,16106127360,21474836480,25000000,30000000"
           }
         }]
       },

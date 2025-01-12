@@ -14,6 +14,7 @@ import Control.Exception (Exception)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.Text as T
+import qualified Data.ByteString.Lazy.Char8 as BL
 import BeeGfsOptions (QuotaType(..), QuotaSelection(..))
 
 -- API Configuration
@@ -70,10 +71,18 @@ getQuota csv quotaType mount selection = liftIO $ do
 
     response <- httpLbs request manager
     let status = responseStatus response
+        contentType = lookup "Content-Type" (responseHeaders response)
+    
     pure $ if statusCode status >= 200 && statusCode status < 300
-        then case eitherDecode (responseBody response) of
-            Left err -> Left $ ParseError err
-            Right val -> Right val
+        then case contentType of
+            Just "application/json" -> 
+                case eitherDecode (responseBody response) of
+                    Left err -> Left $ ParseError err
+                    Right val -> Right val
+            Just "text/plain" -> 
+                -- For CSV responses, wrap the raw text in a JSON object
+                Right $ object [ "csv" .= BL.unpack (responseBody response) ]
+            _ -> Left $ ParseError "Unexpected content type"
         else Left $ ApiError (statusCode status) (show $ responseBody response)
 
 setQuota :: MonadIO m =>
