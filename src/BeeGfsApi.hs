@@ -31,22 +31,28 @@ instance Exception BeeGfsError
 -- API Functions
 getQuota :: MonadIO m => 
             Bool        -- ^ CSV output
-         -> QuotaType   -- ^ Use GID
+         -> QuotaType   -- ^ Use GID or UID
          -> FilePath    -- ^ Mount point
-         -> QuotaSelection -- ^ Selection of GIDs to query
+         -> QuotaSelection -- ^ Selection of IDs to query
          -> m (Either BeeGfsError Value)
-getQuota csv _ mount selection = liftIO $ do
+getQuota csv quotaType mount selection = liftIO $ do
     manager <- newManager defaultManagerSettings
     
     let baseParams = 
             [ "csv=" <> if csv then "true" else "false"
-            , "gid=true"  -- Always true since we only support GID now
+            , case quotaType of
+                UseGID -> "gid=true"
+                UseUID -> "uid=true"
             , "mount=" <> B.pack mount
             ]
         
         selectionParams = case selection of
-            Single (Just id') -> ["gid_value=" <> B.pack id']
-            List ids -> ["gid_list=" <> B.pack ids]
+            Single (Just id') -> case quotaType of
+                UseGID -> ["gid_value=" <> B.pack id']
+                UseUID -> ["uid_value=" <> B.pack id']
+            List ids -> case quotaType of
+                UseGID -> ["gid_list=" <> B.pack ids]
+                UseUID -> ["uid_list=" <> B.pack ids]
             Range start end -> 
                 [ "range_start=" <> B.pack start
                 , "range_end=" <> B.pack end

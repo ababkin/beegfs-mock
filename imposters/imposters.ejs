@@ -9,26 +9,45 @@
         "predicates": [{
           "equals": {
             "method": "GET",
-            "path": "/quota"
+            "path": "/quota",
+            "query": {
+              "gid": "true",
+              "gid_list": "group1,group2,group3",
+              "mount": "/project",
+              "csv": "true"
+            }
           }
         }],
         "responses": [{
           "is": {
             "statusCode": 200,
             "headers": {
-              "Content-Type": "application/json"
+              "Content-Type": "text/plain"
             },
-            "body": {
-              "quotas": [
-                {
-                  "gid": "jdoe_120",
-                  "used": "500G",
-                  "limit": "1T",
-                  "inodes_used": "8000000",
-                  "inodes_limit": "120000000"
-                }
-              ]
+            "body": "Name,Type,Used,Limit,Files,FilesLimit\ngroup1,gid,16106127360,21474836480,25000000,30000000\ngroup2,gid,8589934592,10737418240,15000000,20000000\ngroup3,gid,4294967296,5368709120,10000000,12000000"
+          }
+        }]
+      },
+      {
+        "predicates": [{
+          "equals": {
+            "method": "GET",
+            "path": "/quota",
+            "query": {
+              "gid": "true",
+              "gid_value": "group1",
+              "mount": "/project",
+              "csv": "true"
             }
+          }
+        }],
+        "responses": [{
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Content-Type": "text/plain"
+            },
+            "body": "Name,Type,Used,Limit,Files,FilesLimit\ngroup1,gid,16106127360,21474836480,25000000,30000000"
           }
         }]
       },
@@ -36,7 +55,13 @@
         "predicates": [{
           "equals": {
             "method": "POST",
-            "path": "/quota"
+            "path": "/quota",
+            "body": {
+              "gid": "research_group_123",
+              "size_limit": "10T",
+              "inode_limit": "unlimited",
+              "mount": "/project"
+            }
           }
         }],
         "responses": [{
@@ -47,7 +72,7 @@
             },
             "body": {
               "status": "success",
-              "message": "Quota set successfully"
+              "message": "Quota set successfully for research_group_123"
             }
           }
         }]

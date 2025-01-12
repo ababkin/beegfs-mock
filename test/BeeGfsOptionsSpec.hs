@@ -18,48 +18,67 @@ parseCommand args = case execParserPure defaultPrefs opts args of
 spec :: Spec
 spec = do
     describe "BeeGFS command parsing" $ do
-        it "parses getquota command with list of GIDs" $ do
-            let args = words "--getquota --csv --mount=/project --list myproject_246,myproject2_335"
+        it "parses getquota command with UID" $ do
+            let args = words "--getquota --csv --uid USERNAME --mount=/home1"
+            let result = parseCommand args
+            result `shouldBe` Right (GetQuota GetQuotaOpts 
+                { gqCsv = True
+                , gqType = UseUID
+                , gqMount = "/home1"
+                , gqSelection = Single (Just "USERNAME")
+                })
+
+        it "parses getquota command with single GID" $ do
+            let args = words "--getquota --csv --gid --mount=/project --list group1"
             let result = parseCommand args
             result `shouldBe` Right (GetQuota GetQuotaOpts 
                 { gqCsv = True
                 , gqType = UseGID
                 , gqMount = "/project"
-                , gqSelection = List "myproject_246,myproject2_335"
+                , gqSelection = List "group1"
                 })
 
-        it "parses getquota command with single GID" $ do
-            let args = words "--getquota --mount=/project myproject_246"
+        it "parses getquota command with multiple GIDs" $ do
+            let args = words "--getquota --csv --gid --mount=/project --list group1,group2,group3"
             let result = parseCommand args
             result `shouldBe` Right (GetQuota GetQuotaOpts 
-                { gqCsv = False
+                { gqCsv = True
                 , gqType = UseGID
                 , gqMount = "/project"
-                , gqSelection = Single (Just "myproject_246")
+                , gqSelection = List "group1,group2,group3"
                 })
 
-        -- Removed tests for --uid option
-
-        it "parses setquota command with gid, sizelimit, inodelimit, and mount" $ do
-            let args = words "--setquota --gid wjendrze_120 --sizelimit=20T --inodelimit=120000000 --mount=/project"
+        it "parses setquota command with unlimited inodes" $ do
+            let args = words "--setquota --gid research_group_123 --sizelimit=10T --inodelimit=unlimited --mount=/project"
             let result = parseCommand args
             result `shouldBe` Right (SetQuota SetQuotaOpts 
-                { sqGid = "wjendrze_120"
-                , sqSizeLimit = "20T"
-                , sqInodeLimit = "120000000"
+                { sqGid = "research_group_123"
+                , sqSizeLimit = "10T"
+                , sqInodeLimit = "unlimited"
                 , sqMount = "/project"
                 , sqUnlimitedInodes = False
                 })
 
-        it "parses setquota command with unlimited inodes" $ do
-            let args = words "--setquota --gid wjendrze_120 --sizelimit=20T --inodelimit=120000000 --mount=/project --unlimited-inodes"
+        it "parses setquota command with specific inode limit" $ do
+            let args = words "--setquota --gid research_group_123 --sizelimit=5T --inodelimit=30000000 --mount=/project"
             let result = parseCommand args
             result `shouldBe` Right (SetQuota SetQuotaOpts 
-                { sqGid = "wjendrze_120"
-                , sqSizeLimit = "20T"
-                , sqInodeLimit = "120000000"
+                { sqGid = "research_group_123"
+                , sqSizeLimit = "5T"
+                , sqInodeLimit = "30000000"
                 , sqMount = "/project"
-                , sqUnlimitedInodes = True
+                , sqUnlimitedInodes = False
+                })
+
+        it "parses setquota command with positional arguments" $ do
+            let args = words "--setquota --gid research_group_123 --sizelimit 1T /home1/username"
+            let result = parseCommand args
+            result `shouldBe` Right (SetQuota SetQuotaOpts 
+                { sqGid = "research_group_123"
+                , sqSizeLimit = "1T"
+                , sqInodeLimit = "unlimited"
+                , sqMount = "/home1/username"
+                , sqUnlimitedInodes = False
                 })
 
 isLeft :: Either a b -> Bool
