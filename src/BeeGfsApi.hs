@@ -31,16 +31,16 @@ instance Exception BeeGfsError
 -- API Functions
 getQuota :: MonadIO m => 
             Bool        -- ^ CSV output
-         -> QuotaType   -- ^ Use GID or UID
-         -> String      -- ^ Mount point
-         -> QuotaSelection -- ^ Selection of IDs to query
+         -> QuotaType   -- ^ Use GID
+         -> FilePath    -- ^ Mount point
+         -> QuotaSelection -- ^ Selection of GIDs to query
          -> m (Either BeeGfsError Value)
-getQuota csv quotaType mount selection = liftIO $ do
+getQuota csv _ mount selection = liftIO $ do
     manager <- newManager defaultManagerSettings
     
     let baseParams = 
             [ "csv=" <> if csv then "true" else "false"
-            , "gid=true"
+            , "gid=true"  -- Always true since we only support GID now
             , "mount=" <> B.pack mount
             ]
         
@@ -51,7 +51,7 @@ getQuota csv quotaType mount selection = liftIO $ do
                 [ "range_start=" <> B.pack start
                 , "range_end=" <> B.pack end
                 ]
-            All -> []
+            All -> ["all=true"]
             Single Nothing -> []
 
     let queryString = B.intercalate "&" $ filter (not . B.null) (baseParams ++ selectionParams)
@@ -71,22 +71,20 @@ getQuota csv quotaType mount selection = liftIO $ do
         else Left $ ApiError (statusCode status) (show $ responseBody response)
 
 setQuota :: MonadIO m =>
-            Maybe String  -- ^ GID
-         -> Maybe String  -- ^ UID (always Nothing in our case)
-         -> String       -- ^ Size limit
-         -> Maybe String -- ^ Inode limit
+            String      -- ^ GID
+         -> String      -- ^ Size limit
+         -> String      -- ^ Inode limit
          -> FilePath    -- ^ Mount point
          -> Bool        -- ^ Unlimited inodes
          -> m (Either BeeGfsError Value)
-setQuota gid uid sizeLimit inodeLimit mount unlimitedInodes = liftIO $ do
+setQuota gid sizeLimit inodeLimit mount unlimitedInodes = liftIO $ do
     manager <- newManager defaultManagerSettings
     
     let body = encode $ object
             [ "gid" .= gid
-            , "uid" .= uid
             , "size_limit" .= sizeLimit
             , "inode_limit" .= if unlimitedInodes 
-                              then Just "unlimited" 
+                              then "unlimited" 
                               else inodeLimit
             , "mount" .= mount
             ]
