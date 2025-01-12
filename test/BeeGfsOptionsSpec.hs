@@ -19,7 +19,7 @@ spec :: Spec
 spec = do
     describe "BeeGFS command parsing" $ do
         it "parses getquota command with list of GIDs" $ do
-            let args = words "getquota --csv --gid --mount=/project --list myproject_246,myproject2_335"
+            let args = words "getquota --csv --mount=/project --list myproject_246,myproject2_335"
             let result = parseCommand args
             result `shouldBe` Right (GetQuota GetQuotaOpts 
                 { gqCsv = True
@@ -28,23 +28,17 @@ spec = do
                 , gqSelection = List "myproject_246,myproject2_335"
                 })
 
-        it "fails when neither --uid nor --gid is specified" $ do
-            let args = words "getquota --csv --mount=/project --list myproject_246"
-            parseCommand args `shouldSatisfy` isLeft
-
-        it "fails when both --uid and --gid are specified" $ do
-            let args = words "getquota --csv --uid --gid --mount=/project --list myproject_246"
-            parseCommand args `shouldSatisfy` isLeft
-
-        it "parses getquota command with single UID" $ do
-            let args = words "getquota --uid --mount=/home1 1000"
+        it "parses getquota command with single GID" $ do
+            let args = words "getquota --mount=/project myproject_246"
             let result = parseCommand args
             result `shouldBe` Right (GetQuota GetQuotaOpts 
                 { gqCsv = False
-                , gqType = UseUID
-                , gqMount = "/home1"
-                , gqSelection = Single (Just "1000")
+                , gqType = UseGID
+                , gqMount = "/project"
+                , gqSelection = Single (Just "myproject_246")
                 })
+
+        -- Removed tests for --uid option
 
 isLeft :: Either a b -> Bool
 isLeft (Left _) = True

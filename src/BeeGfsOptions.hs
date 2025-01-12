@@ -35,10 +35,10 @@ import Options.Applicative
 data BeeGfsCommand 
     = GetQuota GetQuotaOpts
     | SetQuota SetQuotaOpts
-    deriving (Show)
+    deriving (Show, Eq)
 
 -- Options for get-quota command
-data QuotaType = UseUID | UseGID
+data QuotaType = UseGID
     deriving (Show, Eq)
 
 data QuotaSelection 
@@ -46,14 +46,14 @@ data QuotaSelection
     | List String           -- List of UIDs/GIDs
     | All                   -- All UIDs/GIDs
     | Range String String   -- Range of UIDs/GIDs
-    deriving (Show)
+    deriving (Show, Eq)
 
 data GetQuotaOpts = GetQuotaOpts
     { gqCsv :: Bool
     , gqType :: QuotaType
     , gqMount :: FilePath
     , gqSelection :: QuotaSelection
-    } deriving (Show)
+    } deriving (Show, Eq)
 
 -- Options for set-quota command
 data SetQuotaOpts = SetQuotaOpts
@@ -63,7 +63,7 @@ data SetQuotaOpts = SetQuotaOpts
     , sqInodeLimit :: Maybe String
     , sqMount :: FilePath
     , sqUnlimitedInodes :: Bool
-    } deriving (Show)
+    } deriving (Show, Eq)
 
 -- Parser for get-quota command
 getQuotaOpts :: Parser GetQuotaOpts
@@ -71,37 +71,30 @@ getQuotaOpts = GetQuotaOpts
     <$> switch
         ( long "csv"
         <> help "Output in CSV format" )
-    <*> (makeQuotaType
-        <$> switch ( long "uid" <> help "Use user ID" )
-        <*> switch ( long "gid" <> help "Use group ID" ))
+    <*> pure UseGID
     <*> strOption
         ( long "mount"
         <> metavar "MOUNT_POINT"
         <> help "Mount point to check quota for (e.g., /project, /home1)"
         <> value "/project" )
     <*> (makeSelection
-        <$> switch ( long "all" <> help "Query all UIDs/GIDs" )
+        <$> switch ( long "all" <> help "Query all GIDs" )
         <*> optional (strOption 
             ( long "list"
-            <> metavar "ID_LIST"
-            <> help "Comma-separated list of IDs to check" ))
+            <> metavar "GID_LIST"
+            <> help "Comma-separated list of GIDs to check" ))
         <*> optional (strOption
             ( long "range-start"
             <> metavar "START"
-            <> help "Start of ID range" ))
+            <> help "Start of GID range" ))
         <*> optional (strOption
             ( long "range-end"
             <> metavar "END"
-            <> help "End of ID range" ))
+            <> help "End of GID range" ))
         <*> optional (argument str
-            ( metavar "ID"
-            <> help "Single ID to check" )))
+            ( metavar "GID"
+            <> help "Single GID to check" )))
   where
-    makeQuotaType uid gid = case (uid, gid) of
-        (True, False) -> UseUID
-        (False, True) -> UseGID
-        _ -> error "One of --uid or --gid is required"
-
     makeSelection all lst start end single = case (all, lst, start, end, single) of
         (True, Nothing, Nothing, Nothing, Nothing) -> All
         (False, Just ids, Nothing, Nothing, Nothing) -> List ids

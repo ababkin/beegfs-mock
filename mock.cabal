@@ -61,7 +61,9 @@ library
     Mock
     BeeGfsOptions
     BeeGfsApi
-  ghc-options: -Wall -O -fno-show-valid-hole-fits
+  ghc-options: -Wall -O1 -fno-show-valid-hole-fits
+               -j
+               +RTS -A32m -RTS
                -- unsafe code
                -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wmissing-fields
                -Werror=incomplete-record-updates -Werror=incomplete-uni-patterns -Werror=partial-fields -Werror=missing-fields
@@ -69,22 +71,31 @@ library
                -Widentities -Wredundant-constraints
                -- Partial type signatures are OK
                -Wno-partial-type-signatures
+               -- Enable build caching
+               -fwrite-interface -fignore-interface-pragmas
 
               -- for now
                -Wno-unused-imports
   if impl(ghc >= 8.8)
     ghc-options:
                -Wmissing-deriving-strategies
+               -fmax-simplifier-iterations=0
+               -fno-specialise
 
 executable beegfs-ctl
   main-is: beegfs-ctl.hs
   hs-source-dirs: src-bin
-  ghc-options: -Wall -O -fno-show-valid-hole-fits -threaded
+  default-language: Haskell2010
+  ghc-options: -Wall -O1 -fno-show-valid-hole-fits -threaded
+               -j
+               +RTS -A32m -RTS
                -- unsafe code
                -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wmissing-fields
                -Werror=incomplete-record-updates -Werror=incomplete-uni-patterns -Werror=partial-fields -Werror=missing-fields
                -- unneeded code
                -Widentities -Wredundant-constraints
+               -- Enable build caching
+               -fwrite-interface -fignore-interface-pragmas
   if impl(ghc >= 8.8)
     ghc-options:
                -Wmissing-deriving-strategies
@@ -100,7 +111,11 @@ test-suite mock-test
     other-modules:      BeeGfsOptionsSpec
     build-depends:      base
                       , mock
-                      , hspec
+                      , hspec >= 2.0.0
+                      , hspec-discover >= 2.0.0
                       , optparse-applicative
-    ghc-options:        -threaded -rtsopts -with-rtsopts=-N
+    ghc-options:        -O1 -threaded -rtsopts -with-rtsopts=-N
+                      -j
+                      +RTS -A32m -RTS
     default-language:   Haskell2010
+    build-tool-depends: hspec-discover:hspec-discover

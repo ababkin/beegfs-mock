@@ -40,18 +40,19 @@ getQuota csv quotaType mount selection = liftIO $ do
     
     let baseParams = 
             [ "csv=" <> if csv then "true" else "false"
-            , "gid=" <> if quotaType == UseGID then "true" else "false"
-            , "uid=" <> if quotaType == UseUID then "true" else "false"
+            , "gid=true"
             , "mount=" <> B.pack mount
             ]
         
         selectionParams = case selection of
-            Single mid -> maybe [] (\id' -> [idParam <> B.pack id']) mid
-            List ids -> ["list=" <> B.pack ids]
-            All -> ["all=true"]
-            Range start end -> ["range=" <> B.pack (start <> "," <> end)]
-            where
-                idParam = if quotaType == UseUID then "uid_value=" else "gid_value="
+            Single (Just id') -> ["gid_value=" <> B.pack id']
+            List ids -> ["gid_list=" <> B.pack ids]
+            Range start end -> 
+                [ "range_start=" <> B.pack start
+                , "range_end=" <> B.pack end
+                ]
+            All -> []
+            Single Nothing -> []
 
     let queryString = B.intercalate "&" $ filter (not . B.null) (baseParams ++ selectionParams)
 

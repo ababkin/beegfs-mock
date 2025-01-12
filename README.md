@@ -42,3 +42,8 @@ curl http://localhost:2525/imposters
 
 
 ```
+
+ren tests
+```
+cabal test --enable-optimization=0 --disable-documentation
+```
