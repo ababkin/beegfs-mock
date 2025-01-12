@@ -40,12 +40,11 @@ handleGetQuota GetQuotaOpts{..} = do
 handleSetQuota :: SetQuotaOpts -> IO ()
 handleSetQuota SetQuotaOpts{..} = do
     result <- Api.setQuota 
-        (Just sqGid)
-        Nothing
-        sqSizeLimit
-        (Just sqInodeLimit)
-        sqMount
-        sqUnlimitedInodes
+        sqGid            -- String
+        sqSizeLimit      -- String
+        sqInodeLimit     -- String
+        sqMount          -- FilePath
+        sqUnlimitedInodes -- Bool
     case result of
         Left err -> putStrLn $ "Error: " ++ show err
         Right response -> putStrLn $ "Response: " ++ show response
