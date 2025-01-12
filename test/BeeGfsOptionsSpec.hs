@@ -19,7 +19,7 @@ spec :: Spec
 spec = do
     describe "BeeGFS command parsing" $ do
         it "parses getquota command with list of GIDs" $ do
-            let args = words "getquota --csv --mount=/project --list myproject_246,myproject2_335"
+            let args = words "--getquota --csv --mount=/project --list myproject_246,myproject2_335"
             let result = parseCommand args
             result `shouldBe` Right (GetQuota GetQuotaOpts 
                 { gqCsv = True
@@ -29,7 +29,7 @@ spec = do
                 })
 
         it "parses getquota command with single GID" $ do
-            let args = words "getquota --mount=/project myproject_246"
+            let args = words "--getquota --mount=/project myproject_246"
             let result = parseCommand args
             result `shouldBe` Right (GetQuota GetQuotaOpts 
                 { gqCsv = False
@@ -39,6 +39,28 @@ spec = do
                 })
 
         -- Removed tests for --uid option
+
+        it "parses setquota command with gid, sizelimit, inodelimit, and mount" $ do
+            let args = words "--setquota --gid wjendrze_120 --sizelimit=20T --inodelimit=120000000 --mount=/project"
+            let result = parseCommand args
+            result `shouldBe` Right (SetQuota SetQuotaOpts 
+                { sqGid = "wjendrze_120"
+                , sqSizeLimit = "20T"
+                , sqInodeLimit = "120000000"
+                , sqMount = "/project"
+                , sqUnlimitedInodes = False
+                })
+
+        it "parses setquota command with unlimited inodes" $ do
+            let args = words "--setquota --gid wjendrze_120 --sizelimit=20T --inodelimit=120000000 --mount=/project --unlimited-inodes"
+            let result = parseCommand args
+            result `shouldBe` Right (SetQuota SetQuotaOpts 
+                { sqGid = "wjendrze_120"
+                , sqSizeLimit = "20T"
+                , sqInodeLimit = "120000000"
+                , sqMount = "/project"
+                , sqUnlimitedInodes = True
+                })
 
 isLeft :: Either a b -> Bool
 isLeft (Left _) = True

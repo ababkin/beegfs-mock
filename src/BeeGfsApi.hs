@@ -72,10 +72,10 @@ getQuota csv quotaType mount selection = liftIO $ do
 
 setQuota :: MonadIO m =>
             Maybe String  -- ^ GID
-         -> Maybe String  -- ^ UID
+         -> Maybe String  -- ^ UID (always Nothing in our case)
          -> String       -- ^ Size limit
          -> Maybe String -- ^ Inode limit
-         -> String      -- ^ Mount point
+         -> FilePath    -- ^ Mount point
          -> Bool        -- ^ Unlimited inodes
          -> m (Either BeeGfsError Value)
 setQuota gid uid sizeLimit inodeLimit mount unlimitedInodes = liftIO $ do

@@ -40,10 +40,10 @@ handleGetQuota GetQuotaOpts{..} = do
 handleSetQuota :: SetQuotaOpts -> IO ()
 handleSetQuota SetQuotaOpts{..} = do
     result <- Api.setQuota 
-        sqGid
-        sqUid
+        (Just sqGid)
+        Nothing
         sqSizeLimit
-        sqInodeLimit
+        (Just sqInodeLimit)
         sqMount
         sqUnlimitedInodes
     case result of
