@@ -82,7 +82,7 @@ getQuota csv quotaType mount selection = liftIO $ do
             Just "text/plain" -> 
                 -- For CSV responses, wrap the raw text in a JSON object
                 Right $ object [ "csv" .= BL.unpack (responseBody response) ]
-            _ -> Left $ ParseError "Unexpected content type"
+            _ -> Left $ ParseError $ "Unexpected content type: " <> show contentType
         else Left $ ApiError (statusCode status) (show $ responseBody response)
 
 setQuota :: MonadIO m =>
