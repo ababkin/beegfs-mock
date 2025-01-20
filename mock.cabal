@@ -58,9 +58,12 @@ library
                , process
                , text
   exposed-modules:
-    Mock
-    BeeGfsOptions
-    BeeGfsApi
+    Beegfs.Mock
+    Beegfs.Options
+    Beegfs.Api
+    Zfs.Mock
+    Zfs.Options
+    Zfs.Api
   ghc-options: -Wall -O1 -fno-show-valid-hole-fits
                -j
                +RTS -A32m -RTS
@@ -104,11 +107,34 @@ executable beegfs-ctl
   build-depends: base
                , mock
 
+executable zfs
+  main-is: zfs.hs
+  hs-source-dirs: src-bin
+  default-language: Haskell2010
+  ghc-options: -Wall -O1 -fno-show-valid-hole-fits -threaded
+               -j
+               +RTS -A32m -RTS
+               -- unsafe code
+               -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wmissing-fields
+               -Werror=incomplete-record-updates -Werror=incomplete-uni-patterns -Werror=partial-fields -Werror=missing-fields
+               -- unneeded code
+               -Widentities -Wredundant-constraints
+               -- Enable build caching
+               -fwrite-interface -fignore-interface-pragmas
+  if impl(ghc >= 8.8)
+    ghc-options:
+               -Wmissing-deriving-strategies
+  if impl(ghcjs)
+    buildable: False
+  build-depends: base
+               , mock
+
 test-suite mock-test
     type:                exitcode-stdio-1.0
     hs-source-dirs:      test
     main-is:            Spec.hs
-    other-modules:      BeeGfsOptionsSpec
+    other-modules:      BeegfsOptionsSpec
+                      , ZfsOptionsSpec
     build-depends:      base
                       , mock
                       , hspec >= 2.0.0

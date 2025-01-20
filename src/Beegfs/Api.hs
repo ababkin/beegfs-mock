@@ -1,9 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module BeeGfsApi
+module Beegfs.Api
     ( getQuota
     , setQuota
-    , BeeGfsError(..)
+    , BeegfsError(..)
     ) where
 
 import Network.HTTP.Client
@@ -15,19 +15,19 @@ import Control.Monad.IO.Class (MonadIO, liftIO)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.Text as T
 import qualified Data.ByteString.Lazy.Char8 as BL
-import BeeGfsOptions (QuotaType(..), QuotaSelection(..))
+import Beegfs.Options (QuotaType(..), QuotaSelection(..))
 
 -- API Configuration
 apiBaseUrl :: String
 apiBaseUrl = "http://0.0.0.0:8080"  -- Point to Mountebank mock
 
 -- Error type
-data BeeGfsError = 
+data BeegfsError = 
     ApiError Int String  -- HTTP status code and message
     | ParseError String
     deriving (Show, Eq)
 
-instance Exception BeeGfsError
+instance Exception BeegfsError
 
 -- API Functions
 getQuota :: MonadIO m => 
@@ -35,7 +35,7 @@ getQuota :: MonadIO m =>
          -> QuotaType   -- ^ Use GID or UID
          -> FilePath    -- ^ Mount point
          -> QuotaSelection -- ^ Selection of IDs to query
-         -> m (Either BeeGfsError Value)
+         -> m (Either BeegfsError Value)
 getQuota csv quotaType mount selection = liftIO $ do
     manager <- newManager defaultManagerSettings
     
@@ -91,7 +91,7 @@ setQuota :: MonadIO m =>
          -> String      -- ^ Inode limit
          -> FilePath    -- ^ Mount point
          -> Bool        -- ^ Unlimited inodes
-         -> m (Either BeeGfsError Value)
+         -> m (Either BeegfsError Value)
 setQuota gid sizeLimit inodeLimit mount unlimitedInodes = liftIO $ do
     manager <- newManager defaultManagerSettings
     

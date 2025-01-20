@@ -1,7 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module BeeGfsOptions 
-  ( BeeGfsCommand(..)
+module Beegfs.Options 
+  ( BeegfsCommand(..)
   , GetQuotaOpts(..)
   , SetQuotaOpts(..)
   , QuotaType(..)
@@ -36,7 +36,7 @@ import Options.Applicative
     )
 
 -- Data types to represent the different commands
-data BeeGfsCommand 
+data BeegfsCommand 
     = GetQuota GetQuotaOpts
     | SetQuota SetQuotaOpts
     deriving (Show, Eq)
@@ -130,8 +130,8 @@ setQuotaOpts = SetQuotaOpts
         <> help "Set unlimited inodes" )
 
 -- Main command parser
-beegfsCommand :: Parser BeeGfsCommand
-beegfsCommand = 
+cmd :: Parser BeegfsCommand
+cmd = 
     (SetQuota <$> setQuotaParser) <|> 
     (GetQuota <$> getQuotaParser)
   where
@@ -206,8 +206,8 @@ beegfsCommand =
         _ -> error "Only one selection method allowed"
 
 -- Main options parser with common flags
-opts :: ParserInfo BeeGfsCommand
-opts = info (beegfsCommand <**> helper)
+opts :: ParserInfo BeegfsCommand
+opts = info (cmd <**> helper)
     ( fullDesc
-    <> progDesc "BeeGFS quota management tool"
-    <> header "beegfs-quota - manage BeeGFS quotas" )
+    <> progDesc "Beegfs quota management tool"
+    <> header "Beegfs-quota - manage Beegfs quotas" )

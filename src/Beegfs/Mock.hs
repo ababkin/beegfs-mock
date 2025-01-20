@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Mock (runMock) where
+module Beegfs.Mock (runMock) where
 
 import Options.Applicative (execParser)
 import Data.Aeson (Value(..), encode, Object)
@@ -10,20 +10,20 @@ import Control.Monad.IO.Class (liftIO)
 import qualified Data.ByteString.Lazy.Char8 as BL
 import qualified Data.Text as T
 
-import BeeGfsOptions
-    ( BeeGfsCommand(..)
+import Beegfs.Options
+    ( BeegfsCommand(..)
     , GetQuotaOpts(..)
     , SetQuotaOpts(..)
     , opts
     )
-import qualified BeeGfsApi as Api
+import qualified Beegfs.Api as Api
 
--- | Main entry point for the mock BeeGFS CLI
+-- | Main entry point for the mock Beegfs CLI
 runMock :: IO ()
 runMock = execParser opts >>= handleCommand
 
 -- | Handle the different CLI commands
-handleCommand :: BeeGfsCommand -> IO ()
+handleCommand :: BeegfsCommand -> IO ()
 handleCommand (GetQuota gopts) = handleGetQuota gopts
 handleCommand (SetQuota sopts) = handleSetQuota sopts
 

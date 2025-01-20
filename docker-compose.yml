@@ -1,8 +1,8 @@
 services:
-  beegfs-mock:
+  Beegfs-mock:
     build: .
-    image: beegfs-mock
-    container_name: beegfs_mock
+    image: Beegfs-mock
+    container_name: Beegfs_mock
     init: true  # Use tini as init process
     stop_signal: SIGTERM
     stop_grace_period: 2s
@@ -14,7 +14,7 @@ services:
       - test-network
     tty: true
     volumes:
-      - beegfs_mock_data:/data
+      - Beegfs_mock_data:/data
       - ${PWD}/ssh_keys:/ssh_keys
       - ${PWD}/imposters:/imposters
     command: >
@@ -32,4 +32,4 @@ networks:
     driver: bridge
 
 volumes:
-  beegfs_mock_data: 
+  Beegfs_mock_data: 

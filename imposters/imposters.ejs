@@ -1,8 +1,88 @@
 {
   "imposters": [{
+    "port": 8085,
+    "protocol": "http",
+    "name": "ZFS API Mock",
+    "recordRequests": true,
+    "stubs": [
+      {
+        "predicates": [{
+          "equals": {
+            "method": "GET",
+            "path": "/zfs/quota",
+            "query": {
+              "username": "john_doe"
+            }
+          }
+        }],
+        "responses": [{
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "username": "john_doe",
+              "quota": "100G"
+            }
+          }
+        }]
+      },
+      {
+        "predicates": [{
+          "equals": {
+            "method": "POST",
+            "path": "/zfs/storage-quota",
+            "body": {
+              "username": "john_doe",
+              "size": "500G"
+            }
+          }
+        }],
+        "responses": [{
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "username": "john_doe",
+              "storage_quota": "500G",
+              "status": "success"
+            }
+          }
+        }]
+      },
+      {
+        "predicates": [{
+          "equals": {
+            "method": "POST",
+            "path": "/zfs/object-quota",
+            "body": {
+              "username": "john_doe",
+              "count": "2000000"
+            }
+          }
+        }],
+        "responses": [{
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "username": "john_doe",
+              "object_quota": "2000000",
+              "status": "success"
+            }
+          }
+        }]
+      }
+    ]
+  }, {
     "port": 8080,
     "protocol": "http",
-    "name": "BeeGFS API Mock",
+    "name": "Beegfs API Mock",
     "recordRequests": true,
     "stubs": [
       {

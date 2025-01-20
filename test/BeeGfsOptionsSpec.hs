@@ -1,15 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module BeeGfsOptionsSpec (spec) where
+module BeegfsOptionsSpec (spec) where
 
 import Test.Hspec
 import Options.Applicative
 import Data.Either (isRight)
 
-import BeeGfsOptions
+import Beegfs.Options
 
 -- Helper function to parse commands
-parseCommand :: [String] -> Either String BeeGfsCommand
+parseCommand :: [String] -> Either String BeegfsCommand
 parseCommand args = case execParserPure defaultPrefs opts args of
     Success cmd -> Right cmd
     Failure f -> Left $ show f
@@ -17,7 +17,7 @@ parseCommand args = case execParserPure defaultPrefs opts args of
 
 spec :: Spec
 spec = do
-    describe "BeeGFS command parsing" $ do
+    describe "Beegfs command parsing" $ do
         it "parses getquota command with UID" $ do
             let args = words "--getquota --csv --uid USERNAME --mount=/home1"
             let result = parseCommand args

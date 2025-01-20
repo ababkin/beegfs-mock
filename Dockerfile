@@ -41,6 +41,7 @@ RUN apt-get update && \
 
 # Copy the binary from the builder stage
 COPY --from=builder /app/bin/beegfs-ctl /usr/local/bin/
+COPY --from=builder /app/bin/zfs /usr/local/bin/
 
 # Create directory for Mountebank imposters
 RUN mkdir -p /imposters

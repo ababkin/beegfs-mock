@@ -1,4 +1,4 @@
-import Mock
+import Beegfs.Mock (runMock)
 
 main :: IO ()
 main = runMock

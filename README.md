@@ -27,11 +27,11 @@ docker compose up
 # ssh into container
 ssh -o StrictHostKeyChecking=no -p 2222 root@localhost
 
-# run beegfs-ctl getquota
-beegfs-ctl getquota --uid --all --mount=/project
+# run Beegfs-ctl getquota
+Beegfs-ctl getquota --uid --all --mount=/project
 
 # set quota
-beegfs-ctl setquota --uid=1000 --sizelimit=1T --mount=/project
+Beegfs-ctl setquota --uid=1000 --sizelimit=1T --mount=/project
 
 # query actual imposter
 curl http://localhost:2525/imposters/8080 | jq '.requests'
