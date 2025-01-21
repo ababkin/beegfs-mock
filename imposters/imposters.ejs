@@ -9,10 +9,7 @@
         "predicates": [{
           "equals": {
             "method": "GET",
-            "path": "/zfs/quota",
-            "query": {
-              "quota": "userquota@john_doe"
-            }
+            "path": "/zfs/userquota/john_doe"
           }
         }],
         "responses": [{
@@ -32,7 +29,7 @@
         "predicates": [{
           "equals": {
             "method": "POST",
-            "path": "/zfs/storage-quota",
+            "path": "/zfs/userquota",
             "body": {
               "username": "john_doe",
               "size": "500G"
@@ -57,7 +54,7 @@
         "predicates": [{
           "equals": {
             "method": "POST",
-            "path": "/zfs/object-quota",
+            "path": "/zfs/userobjquota",
             "body": {
               "username": "john_doe",
               "count": "2000000"

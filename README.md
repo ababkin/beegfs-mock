@@ -47,3 +47,4 @@ ren tests
 ```
 cabal test --enable-optimization=0 --disable-documentation
 ```
+

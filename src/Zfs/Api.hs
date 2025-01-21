@@ -36,27 +36,26 @@ getQuota :: MonadIO m =>
 getQuota username = liftIO $ do
     manager <- newManager defaultManagerSettings
     
-    let queryString = "quota=userquota@" <> B.pack username
-
-    initReq <- parseRequest (apiBaseUrl ++ "/zfs/quota")
+    initReq <- parseRequest $ apiBaseUrl ++ "/zfs/userquota/" ++ username
     let request = initReq
             { method = "GET"
-            , queryString = queryString
+            , requestHeaders = 
+                [ ("Content-Type", "application/json")
+                ]
             }
 
     response <- httpLbs request manager
-    let status = responseStatus response
-    
-    pure $ if statusCode status >= 200 && statusCode status < 300
+    let status = statusCode $ responseStatus response
+    if status == 200
         then case eitherDecode (responseBody response) of
-            Left err -> Left $ ParseError err
-            Right val -> Right val
-        else Left $ ApiError (statusCode status) (show $ responseBody response)
+            Left err -> return $ Left $ ParseError err
+            Right val -> return $ Right val
+        else return $ Left $ ApiError status (show $ responseBody response)
 
 -- | Set storage quota for a user
 setStorageQuota :: MonadIO m =>
-                   String   -- ^ Username
-                -> String   -- ^ Quota size (e.g., "100G")
+                   String    -- ^ Username
+                -> String    -- ^ Size
                 -> m (Either ZfsError Value)
 setStorageQuota username size = liftIO $ do
     manager <- newManager defaultManagerSettings
@@ -66,7 +65,7 @@ setStorageQuota username size = liftIO $ do
             , "size" .= size
             ]
 
-    initReq <- parseRequest (apiBaseUrl ++ "/zfs/storage-quota")
+    initReq <- parseRequest $ apiBaseUrl ++ "/zfs/userquota"
     let request = initReq
             { method = "POST"
             , requestBody = RequestBodyLBS body
@@ -76,17 +75,17 @@ setStorageQuota username size = liftIO $ do
             }
 
     response <- httpLbs request manager
-    let status = responseStatus response
-    pure $ if statusCode status >= 200 && statusCode status < 300
+    let status = statusCode $ responseStatus response
+    if status == 200
         then case eitherDecode (responseBody response) of
-            Left err -> Left $ ParseError err
-            Right val -> Right val
-        else Left $ ApiError (statusCode status) (show $ responseBody response)
+            Left err -> return $ Left $ ParseError err
+            Right val -> return $ Right val
+        else return $ Left $ ApiError status (show $ responseBody response)
 
 -- | Set object quota for a user
 setObjectQuota :: MonadIO m =>
                   String    -- ^ Username
-               -> String    -- ^ Object count
+               -> String    -- ^ Count
                -> m (Either ZfsError Value)
 setObjectQuota username count = liftIO $ do
     manager <- newManager defaultManagerSettings
@@ -96,7 +95,7 @@ setObjectQuota username count = liftIO $ do
             , "count" .= count
             ]
 
-    initReq <- parseRequest (apiBaseUrl ++ "/zfs/object-quota")
+    initReq <- parseRequest $ apiBaseUrl ++ "/zfs/userobjquota"
     let request = initReq
             { method = "POST"
             , requestBody = RequestBodyLBS body
@@ -106,9 +105,9 @@ setObjectQuota username count = liftIO $ do
             }
 
     response <- httpLbs request manager
-    let status = responseStatus response
-    pure $ if statusCode status >= 200 && statusCode status < 300
+    let status = statusCode $ responseStatus response
+    if status == 200
         then case eitherDecode (responseBody response) of
-            Left err -> Left $ ParseError err
-            Right val -> Right val
-        else Left $ ApiError (statusCode status) (show $ responseBody response)
+            Left err -> return $ Left $ ParseError err
+            Right val -> return $ Right val
+        else return $ Left $ ApiError status (show $ responseBody response)
