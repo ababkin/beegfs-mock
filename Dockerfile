@@ -3,15 +3,18 @@ FROM haskell:9.4 as builder
 
 WORKDIR /app
 
-# Copy only the cabal file for dependency resolution
-COPY mock.cabal ./
+# Copy only files needed for dependency resolution
+COPY mock.cabal cabal.project* stack.yaml* ./
 
-# Install dependencies
+# Install dependencies in a separate layer
 RUN cabal update && \
     cabal build --only-dependencies
 
-# Copy the rest of the source code
-COPY . .
+# Copy source code files
+COPY src/ src/
+COPY test/ test/
+COPY imposters/ imposters/
+COPY scripts/ scripts/
 
 # Build the application
 RUN cabal build && \
@@ -22,7 +25,7 @@ FROM ubuntu:22.04
 
 WORKDIR /app
 
-# Install runtime dependencies, SSH server, and Node.js for Mountebank
+# Install runtime dependencies in a single layer
 RUN apt-get update && \
     apt-get install -y \
     libgmp10 \
@@ -33,26 +36,22 @@ RUN apt-get update && \
     npm \
     jq && \
     rm -rf /var/lib/apt/lists/* && \
-    mkdir -p /var/run/sshd && \
-    mkdir -p /root/.ssh && \
+    # Create required directories
+    mkdir -p /var/run/sshd /root/.ssh /imposters && \
     chmod 700 /root/.ssh && \
+    # Configure SSH
+    sed -i 's/#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config && \
+    sed -i 's/#PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config && \
+    sed -i 's/#PubkeyAuthentication.*/PubkeyAuthentication yes/' /etc/ssh/sshd_config && \
     # Install Mountebank
     npm install -g mountebank@2.8.1
 
-# Copy the binary from the builder stage
+# Copy the binaries from the builder stage
 COPY --from=builder /app/bin/beegfs-ctl /usr/local/bin/
 COPY --from=builder /app/bin/zfs /usr/local/bin/
 
-# Create directory for Mountebank imposters
-RUN mkdir -p /imposters
-
-# Copy Mountebank imposters
+# Copy Mountebank imposters last since they might change frequently
 COPY imposters/ /imposters/
-
-# SSH configuration
-RUN sed -i 's/#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config && \
-    sed -i 's/#PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config && \
-    sed -i 's/#PubkeyAuthentication.*/PubkeyAuthentication yes/' /etc/ssh/sshd_config
 
 # Expose ports
 EXPOSE 22 2525 8080 
