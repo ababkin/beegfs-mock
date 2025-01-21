@@ -82,3 +82,4 @@ opts = info (commandParser <**> helper)
 
 parseZfsOpts :: IO ZfsCommand
 parseZfsOpts = execParser opts
+

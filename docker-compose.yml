@@ -1,8 +1,8 @@
 services:
-  Beegfs-mock:
+  mock-service:
     build: .
-    image: Beegfs-mock
-    container_name: Beegfs_mock
+    image: ssh-remote-box-mock
+    container_name: ssh-remote-box-mock
     init: true  # Use tini as init process
     stop_signal: SIGTERM
     stop_grace_period: 2s
@@ -14,7 +14,7 @@ services:
       - test-network
     tty: true
     volumes:
-      - Beegfs_mock_data:/data
+      - ssh-remote-box-mock_data:/data
       - ${PWD}/ssh_keys:/ssh_keys
       - ${PWD}/imposters:/imposters
     command: >
@@ -32,4 +32,4 @@ networks:
     driver: bridge
 
 volumes:
-  Beegfs_mock_data: 
+  ssh-remote-box-mock_data: 

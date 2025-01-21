@@ -1,5 +1,5 @@
 # Build stage
-FROM haskell:9.4 as builder
+FROM haskell:9.4 AS builder
 
 WORKDIR /app
 
@@ -13,6 +13,7 @@ RUN cabal update && \
 # Copy source code files
 COPY src/ src/
 COPY test/ test/
+COPY src-bin/ src-bin/
 COPY imposters/ imposters/
 COPY scripts/ scripts/
 
