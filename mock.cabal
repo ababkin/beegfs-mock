@@ -46,17 +46,19 @@ library
     TypeOperators
     UndecidableInstances
     ViewPatterns
-  build-depends: base
-               , aeson
-               , bytestring
-               , directory
-               , filepath
-               , http-client
-               , http-client-tls
-               , http-types
-               , optparse-applicative
-               , process
-               , text
+  build-depends:
+      base >=4.7 && <5
+      , aeson
+      , bytestring
+      , directory
+      , filepath
+      , http-client
+      , http-client-tls
+      , http-types
+      , optparse-applicative
+      , process
+      , text
+      , regex-tdfa
   exposed-modules:
     Beegfs.Mock
     Beegfs.Options

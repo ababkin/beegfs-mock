@@ -36,7 +36,7 @@ getQuota :: MonadIO m =>
 getQuota username = liftIO $ do
     manager <- newManager defaultManagerSettings
     
-    let queryString = "username=" <> B.pack username
+    let queryString = "quota=userquota@" <> B.pack username
 
     initReq <- parseRequest (apiBaseUrl ++ "/zfs/quota")
     let request = initReq
